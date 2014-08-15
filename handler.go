@@ -30,21 +30,25 @@ type BottDnsHandler struct {
 
 func NewBottDnsHandler(dump string) *BottDnsHandler {
 	h := &BottDnsHandler{
-		mu:    &sync.Mutex{},
-		dump:  dump,
-		hosts: make(map[string][]string),
+		mu:   &sync.Mutex{},
+		dump: dump,
 	}
-	if _, err := os.Stat(dump); err == nil {
-		b, err := ioutil.ReadFile(dump)
-		if err != nil {
-			logger.Info("Read dump file failed", dump)
-		}
-		if err := yaml.Unmarshal(b, &h.hosts); err != nil {
-			logger.Info("Load dump file failed", dump)
-		}
-	}
-	logger.Debug(h.hosts)
+	h.Load()
 	return h
+}
+
+func (self *BottDnsHandler) Load() {
+	self.hosts = make(map[string][]string)
+	if _, err := os.Stat(self.dump); err == nil {
+		b, err := ioutil.ReadFile(self.dump)
+		if err != nil {
+			logger.Info("Read dump file failed", self.dump)
+		}
+		if err := yaml.Unmarshal(b, &self.hosts); err != nil {
+			logger.Info("Load dump file failed", self.dump)
+		}
+	}
+	logger.Debug(self.hosts)
 }
 
 func (self *BottDnsHandler) Dump() {
