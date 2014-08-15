@@ -49,7 +49,7 @@ func (self *Bott) Serve(dump string, c chan os.Signal) {
 	}()
 
 	apiServer := Api{
-		self.api, &handler.hosts,
+		self.api, handler.hosts,
 	}
 	go apiServer.Serve()
 
