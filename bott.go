@@ -27,8 +27,6 @@ func (self *Bott) Serve(dump string, c chan os.Signal) {
 	dnsHandler := dns.NewServeMux()
 	dnsHandler.HandleFunc(".", handler.Handle)
 
-	logger.Debug(u.Scheme, u.Host)
-
 	server := &dns.Server{
 		Addr:         u.Host,
 		Net:          u.Scheme,

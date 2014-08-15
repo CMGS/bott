@@ -88,7 +88,7 @@ func (self *BottDnsHandler) Handle(w dns.ResponseWriter, req *dns.Msg) {
 	q := req.Question[0]
 	Q := Question{self.unFqdn(q.Name), dns.TypeToString[q.Qtype], dns.ClassToString[q.Qclass]}
 
-	logger.Debug("Question:", Q.String())
+	logger.Info("Question:", Q.String())
 	if ok := net.ParseIP(Q.qname); ok != nil {
 		self.Responder(w, req, []string{Q.qname})
 		return
@@ -96,11 +96,11 @@ func (self *BottDnsHandler) Handle(w dns.ResponseWriter, req *dns.Msg) {
 	if self.isIPQuery(q) {
 		if ips, ok := self.hosts[Q.qname]; ok {
 			self.Responder(w, req, ips)
-			logger.Debug(Q.qname, "found in hosts")
+			logger.Info(Q.qname, "found in hosts")
 			return
 		}
 	}
-	logger.Debug(Q.qname, "not found")
+	logger.Info(Q.qname, "not found")
 	dns.HandleFailed(w, req)
 }
 
