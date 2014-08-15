@@ -50,6 +50,20 @@ func NewBottDnsHandler(dump string) *BottDnsHandler {
 func (self *BottDnsHandler) Dump() {
 	self.mu.Lock()
 	defer self.mu.Unlock()
+	for domain, ips := range self.hosts {
+		if len(ips) == 0 {
+			delete(self.hosts, domain)
+		}
+	}
+	b, err := yaml.Marshal(self.hosts)
+	if err != nil {
+		logger.Info("Dump hosts failed")
+		return
+	}
+	if err := ioutil.WriteFile(self.dump, b, 0755); err != nil {
+		logger.Info("Save dump failed")
+		return
+	}
 }
 
 func (self *BottDnsHandler) Handle(w dns.ResponseWriter, req *dns.Msg) {
