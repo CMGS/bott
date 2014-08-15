@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"syscall"
 )
@@ -16,6 +17,8 @@ func pid(path string) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	var rTimeout, wTimeout int
 	var addr, dump, pidFile, api string
 
