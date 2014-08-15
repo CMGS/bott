@@ -3,8 +3,13 @@ package main
 import (
 	"fmt"
 	"github.com/miekg/dns"
+	"gopkg.in/yaml.v1"
+	"io/ioutil"
+	"math/rand"
 	"net"
+	"os"
 	"sync"
+	"time"
 )
 
 type Question struct {
@@ -19,25 +24,43 @@ func (self *Question) String() string {
 
 type BottDnsHandler struct {
 	mu    *sync.Mutex
-	hosts map[string]string
+	hosts map[string][]string
 	dump  string
 }
 
 func NewBottDnsHandler(dump string) *BottDnsHandler {
-	return &BottDnsHandler{
-		&sync.Mutex{},
-		make(map[string]string),
-		dump,
+	h := &BottDnsHandler{
+		mu:    &sync.Mutex{},
+		dump:  dump,
+		hosts: make(map[string][]string),
 	}
+	if _, err := os.Stat(dump); err == nil {
+		b, err := ioutil.ReadFile(dump)
+		if err != nil {
+			logger.Info("Read dump file failed", dump)
+		}
+		if err := yaml.Unmarshal(b, &h.hosts); err != nil {
+			logger.Info("Load dump file failed", dump)
+		}
+	}
+	logger.Debug(h.hosts)
+	return h
+}
+
+func (self *BottDnsHandler) Dump() {
+	self.mu.Lock()
+	defer self.mu.Unlock()
 }
 
 func (self *BottDnsHandler) Handle(w dns.ResponseWriter, req *dns.Msg) {
+	rand.Seed(time.Now().UnixNano())
 	q := req.Question[0]
 	Q := Question{self.unFqdn(q.Name), dns.TypeToString[q.Qtype], dns.ClassToString[q.Qclass]}
 
 	logger.Debug("Question:", Q.String())
 	if self.isIPQuery(q) {
-		if ip, ok := self.hosts[Q.qname]; ok {
+		if ips, ok := self.hosts[Q.qname]; ok {
+			ip := ips[rand.Intn(len(ips))]
 			m := new(dns.Msg)
 			m.SetReply(req)
 			rr_header := dns.RR_Header{Name: q.Name, Rrtype: dns.TypeA, Class: dns.ClassINET}
