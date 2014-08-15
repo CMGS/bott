@@ -70,26 +70,36 @@ func (self *BottDnsHandler) Dump() {
 	}
 }
 
+func (self *BottDnsHandler) Responder(w dns.ResponseWriter, req *dns.Msg, ips []string) {
+	q := req.Question[0]
+	m := new(dns.Msg)
+	m.SetReply(req)
+	rr_header := dns.RR_Header{Name: q.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 3600}
+	for _, ip := range ips {
+		a := &dns.A{rr_header, net.ParseIP(ip)}
+		m.Answer = append(m.Answer, a)
+	}
+	w.WriteMsg(m)
+	return
+}
+
 func (self *BottDnsHandler) Handle(w dns.ResponseWriter, req *dns.Msg) {
 	rand.Seed(time.Now().UnixNano())
 	q := req.Question[0]
 	Q := Question{self.unFqdn(q.Name), dns.TypeToString[q.Qtype], dns.ClassToString[q.Qclass]}
 
 	logger.Debug("Question:", Q.String())
+	if ok := net.ParseIP(Q.qname); ok != nil {
+		self.Responder(w, req, []string{Q.qname})
+		return
+	}
 	if self.isIPQuery(q) {
 		if ips, ok := self.hosts[Q.qname]; ok {
-			ip := ips[rand.Intn(len(ips))]
-			m := new(dns.Msg)
-			m.SetReply(req)
-			rr_header := dns.RR_Header{Name: q.Name, Rrtype: dns.TypeA, Class: dns.ClassINET}
-			a := &dns.A{rr_header, net.ParseIP(ip)}
-			m.Answer = append(m.Answer, a)
-			w.WriteMsg(m)
-			logger.Debug(Q.qname, "found in hosts", Q.qname)
+			self.Responder(w, req, ips)
+			logger.Debug(Q.qname, "found in hosts")
 			return
 		}
 	}
-
 	logger.Debug(Q.qname, "not found")
 	dns.HandleFailed(w, req)
 }
