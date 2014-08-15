@@ -54,7 +54,7 @@ func (self *Bott) Serve(dump string, c chan os.Signal) {
 		logger.Info("Catch", s)
 		switch s {
 		case syscall.SIGHUP:
-			handler.Load()
+			handler.Dump()
 		default:
 			return
 		}
