@@ -11,6 +11,7 @@ import (
 
 type Bott struct {
 	addr     string
+	api      string
 	rTimeout int
 	wTimeout int
 }
@@ -46,6 +47,11 @@ func (self *Bott) Serve(dump string, c chan os.Signal) {
 			logger.Assert(err, fmt.Sprintf("Start failed on %s", self.addr))
 		}
 	}()
+
+	apiServer := Api{
+		self.api, &handler.hosts,
+	}
+	go apiServer.Serve()
 
 	for {
 		s := <-c

@@ -17,14 +17,16 @@ func pid(path string) {
 
 func main() {
 	var rTimeout, wTimeout int
-	var addr, dump, pidFile string
+	var addr, dump, pidFile, api string
 
 	flag.BoolVar(&logger.Mode, "DEBUG", false, "enable debug")
 	flag.StringVar(&addr, "addr", "udp://127.0.0.1:9999", "server address")
+	flag.StringVar(&api, "api", "127.0.0.1:8080", "api address")
 	flag.IntVar(&rTimeout, "read-timeout", 5, "server read timeout")
 	flag.IntVar(&wTimeout, "write-timeout", 5, "server write timeout")
 	flag.StringVar(&dump, "dump", "/tmp/dump.yaml", "dump file path")
 	flag.StringVar(&pidFile, "pidfile", "/var/run/bott.pid", "pid file")
+
 	flag.Parse()
 
 	var c = make(chan os.Signal, 1)
@@ -36,7 +38,7 @@ func main() {
 	defer os.Remove(pidFile)
 
 	bott := Bott{
-		addr, rTimeout, wTimeout,
+		addr, api, rTimeout, wTimeout,
 	}
 	bott.Serve(dump, c)
 }
