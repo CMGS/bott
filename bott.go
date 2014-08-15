@@ -13,14 +13,16 @@ type Bott struct {
 	wTimeout int
 }
 
-func (self *Bott) Serve() {
+func (self *Bott) Serve(dump string) {
 	u, err := url.Parse(self.addr)
 	if err != nil {
 		logger.Assert(err, "url")
 	}
 
+	Handler := NewBottDnsHandler(dump)
+
 	dnsHandler := dns.NewServeMux()
-	dnsHandler.HandleFunc(".", func(w dns.ResponseWriter, req *dns.Msg) {})
+	dnsHandler.HandleFunc(".", Handler.Handle)
 
 	logger.Debug(u.Scheme, u.Host)
 
