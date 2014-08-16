@@ -70,15 +70,13 @@ func (self *BottDnsHandler) Dump() {
 	}
 }
 
-func (self *BottDnsHandler) Responder(w dns.ResponseWriter, req *dns.Msg, ips []string) {
+func (self *BottDnsHandler) Responder(w dns.ResponseWriter, req *dns.Msg, ip string) {
 	q := req.Question[0]
 	m := new(dns.Msg)
 	m.SetReply(req)
 	rr_header := dns.RR_Header{Name: q.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 3600}
-	for _, ip := range ips {
-		a := &dns.A{rr_header, net.ParseIP(ip)}
-		m.Answer = append(m.Answer, a)
-	}
+	a := &dns.A{rr_header, net.ParseIP(ip)}
+	m.Answer = append(m.Answer, a)
 	w.WriteMsg(m)
 	return
 }
@@ -90,12 +88,13 @@ func (self *BottDnsHandler) Handle(w dns.ResponseWriter, req *dns.Msg) {
 
 	logger.Info("Question:", Q.String())
 	if ok := net.ParseIP(Q.qname); ok != nil {
-		self.Responder(w, req, []string{Q.qname})
+		self.Responder(w, req, Q.qname)
 		return
 	}
 	if self.isIPQuery(q) {
 		if ips, ok := self.hosts[Q.qname]; ok {
-			self.Responder(w, req, ips)
+			ip := ips[rand.Intn(len(ips))]
+			self.Responder(w, req, ip)
 			logger.Info(Q.qname, "found in hosts")
 			return
 		}
