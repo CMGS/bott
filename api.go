@@ -39,7 +39,6 @@ func makeVetrx(ips []string) map[string]struct{} {
 
 func (self *Api) Add(w http.ResponseWriter, req *http.Request) {
 	host := req.URL.Query().Get(":host")
-	encoder := json.NewEncoder(w)
 	decoder := json.NewDecoder(req.Body)
 	data := Message{}
 	err := decoder.Decode(&data)
@@ -70,12 +69,10 @@ func (self *Api) Add(w http.ResponseWriter, req *http.Request) {
 		self.hosts[host] = make([]string, len(data.Ip))
 		copy(self.hosts[host], data.Ip)
 	}
-	encoder.Encode(self.hosts)
 }
 
 func (self *Api) Delete(w http.ResponseWriter, req *http.Request) {
 	host := req.URL.Query().Get(":host")
-	encoder := json.NewEncoder(w)
 	decoder := json.NewDecoder(req.Body)
 	data := Message{}
 	err := decoder.Decode(&data)
@@ -113,7 +110,6 @@ func (self *Api) Delete(w http.ResponseWriter, req *http.Request) {
 		}
 		self.hosts[host] = new_ips
 	}
-	encoder.Encode(self.hosts)
 }
 
 func (self *Api) Serve() {
