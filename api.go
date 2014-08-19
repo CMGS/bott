@@ -60,7 +60,7 @@ func (self *Api) Add(w http.ResponseWriter, req *http.Request) {
 			vetrx[ip] = struct{}{}
 		}
 		for _, ip := range data.Ip {
-			if _, ok := vetrx[ip]; ok {
+			if _, ok := vetrx[ip]; ok || ip == "" {
 				continue
 			}
 			self.hosts[host] = append(self.hosts[host], ip)

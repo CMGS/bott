@@ -104,7 +104,7 @@ func (self *BottDnsHandler) Handle(w dns.ResponseWriter, req *dns.Msg) {
 }
 
 func (self *BottDnsHandler) isIPQuery(q dns.Question) bool {
-	return q.Qtype == dns.TypeA && q.Qclass == dns.ClassINET
+	return (q.Qtype == dns.TypeA || q.Qtype == dns.TypeAAAA) && q.Qclass == dns.ClassINET
 }
 
 func (self *BottDnsHandler) unFqdn(s string) string {
